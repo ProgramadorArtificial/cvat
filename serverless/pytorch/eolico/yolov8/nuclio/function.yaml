@@ -1,0 +1,48 @@
+metadata:
+  name: my_yolov8
+  namespace: cvat
+  annotations:
+    name: YOLO v8
+    type: detector
+    framework: pytorch
+    spec: |
+      [
+        { "id": 0, "name": "cable_tower" },
+        { "id": 1, "name": "turbine" }
+      ]
+spec:
+  description: YOLO v8 via pytorch
+  runtime: 'python:3.9'
+  handler: main:handler
+  eventTimeout: 30s
+  build:
+    image: my_yolov8_eolico
+    baseImage: ubuntu:22.04
+
+    directives:
+      preCopy:
+        - kind: USER
+          value: root
+        - kind: RUN
+          value: apt update && apt install --no-install-recommends -y wget python3-pip && apt install ffmpeg libsm6 libxext6 -y
+        - kind: RUN
+          value: pip install opencv-python-headless pillow pyyaml ultralytics==8.0.178
+        - kind: WORKDIR
+          value: /opt/nuclio
+        - kind: RUN
+          value: ln -s /usr/bin/python3 /usr/bin/python
+
+  triggers:
+    myHttpTrigger:
+      maxWorkers: 2
+      kind: 'http'
+      workerAvailabilityTimeoutMilliseconds: 10000
+      attributes:
+        maxRequestBodySize: 33554432 # 32MB
+
+  platform:
+    attributes:
+      restartPolicy:
+        name: always
+        maximumRetryCount: 3
+      mountMode: volume
