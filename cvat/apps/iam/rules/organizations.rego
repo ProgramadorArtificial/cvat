@@ -62,10 +62,11 @@ allow {
     utils.is_admin
 }
 
-allow {
-    input.scope == utils.CREATE
-    utils.has_perm(utils.USER)
-}
+# User can not create organization
+#allow {
+#    input.scope == utils.CREATE
+#    utils.has_perm(utils.USER)
+#}
 
 allow {
     input.scope == utils.CREATE

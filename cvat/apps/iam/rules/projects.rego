@@ -35,19 +35,21 @@ is_project_staff {
     utils.is_resource_owner
 }
 
-is_project_staff {
-    utils.is_resource_assignee
-}
+# Assigned to the project does not mean the account is the owner/admin of the project
+#is_project_staff {
+#    utils.is_resource_assignee
+#}
 
 allow {
     utils.is_admin
 }
 
-allow {
-    { utils.CREATE, utils.IMPORT_BACKUP }[input.scope]
-    utils.is_sandbox
-    utils.has_perm(utils.USER)
-}
+# Not allow the user to create project in a personal organization
+#allow {
+#    { utils.CREATE, utils.IMPORT_BACKUP }[input.scope]
+#    utils.is_sandbox
+#    utils.has_perm(utils.USER)
+#}
 
 allow {
     { utils.CREATE, utils.IMPORT_BACKUP }[input.scope]
@@ -79,6 +81,7 @@ allow {
     organizations.is_member
 }
 
+# Allow all organization members to list all projects
 filter = [] { # Django Q object to filter list of entries
     utils.is_admin
     utils.is_sandbox
@@ -93,7 +96,7 @@ filter = [] { # Django Q object to filter list of entries
 } else = qobject {
     utils.is_organization
     utils.has_perm(utils.USER)
-    organizations.has_perm(organizations.MAINTAINER)
+    organizations.has_perm(organizations.WORKER)
     qobject := [ {"organization": input.auth.organization.id} ]
 } else = qobject {
     organizations.has_perm(organizations.WORKER)
@@ -108,11 +111,12 @@ allow {
     is_project_staff
 }
 
+# Allow all organization members to access all projects
 allow {
     input.scope == utils.VIEW
     input.auth.organization.id == input.resource.organization.id
     utils.has_perm(utils.USER)
-    organizations.has_perm(organizations.MAINTAINER)
+    organizations.has_perm(organizations.WORKER)
 }
 
 allow {

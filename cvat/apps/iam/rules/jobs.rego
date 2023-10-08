@@ -44,25 +44,26 @@ is_task_owner {
     input.resource.task.owner.id == input.auth.user.id
 }
 
-is_task_assignee {
-    input.resource.task.assignee.id == input.auth.user.id
-}
+#is_task_assignee {
+#    input.resource.task.assignee.id == input.auth.user.id
+#}
 
 is_project_owner {
     input.resource.project.owner.id == input.auth.user.id
 }
 
-is_project_assignee {
-    input.resource.project.assignee.id == input.auth.user.id
-}
+#is_project_assignee {
+#    input.resource.project.assignee.id == input.auth.user.id
+#}
 
 is_project_staff {
     is_project_owner
 }
 
-is_project_staff {
-    is_project_assignee
-}
+# Assigned to the project does not mean the account is the owner/admin of the project
+#is_project_staff {
+#    is_project_assignee
+#}
 
 is_task_staff {
     is_project_staff
@@ -72,17 +73,19 @@ is_task_staff {
     is_task_owner
 }
 
-is_task_staff {
-    is_task_assignee
-}
+# Assigned to the task does not mean the account is the owner/admin of the task
+#is_task_staff {
+#    is_task_assignee
+#}
 
 is_job_staff {
     is_task_staff
 }
 
-is_job_staff {
-    is_job_assignee
-}
+# Assigned to the job does not mean the account is the owner/admin of the job
+#is_job_staff {
+#    is_job_assignee
+#}
 
 default allow = false
 
@@ -100,7 +103,7 @@ allow {
     organizations.is_member
 }
 
-
+# Allow all organization members to list all jobs
 filter = [] { # Django Q object to filter list of entries
     utils.is_admin
     utils.is_sandbox
@@ -122,7 +125,7 @@ filter = [] { # Django Q object to filter list of entries
 } else = qobject {
     utils.is_organization
     utils.has_perm(utils.USER)
-    organizations.has_perm(organizations.MAINTAINER)
+    organizations.has_perm(organizations.WORKER)
     qobject := [
         {"segment__task__organization": input.auth.organization.id},
         {"segment__task__project__organization": input.auth.organization.id}, "|"]
@@ -208,14 +211,23 @@ allow {
     is_job_staff
 }
 
+# Allow all organization members to change how is assigned to a job
+allow {
+    { utils.UPDATE_ASSIGNEE }[input.scope]
+    input.auth.organization.id == input.resource.organization.id
+    utils.has_perm(utils.USER)
+    organizations.has_perm(organizations.WORKER)
+}
+
+# Allow the account assigned to the job to access, annotate and finish the job
 allow {
     { utils.VIEW, utils.VIEW_ANNOTATIONS, utils.VIEW_DATA, utils.VIEW_METADATA,
       utils.UPDATE_STATE, utils.UPDATE_ANNOTATIONS, utils.DELETE_ANNOTATIONS,
-      utils.IMPORT_ANNOTATIONS, utils.UPDATE_METADATA
+      utils.UPDATE_STAGE, utils.UPDATE_METADATA
     }[input.scope]
     input.auth.organization.id == input.resource.organization.id
-    input.auth.user.privilege == utils.WORKER
-    input.auth.organization.user.role == null
+    utils.has_perm(utils.USER)
+    organizations.has_perm(organizations.WORKER)
     is_job_assignee
 }
 

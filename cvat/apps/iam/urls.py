@@ -25,6 +25,7 @@ urlpatterns = [
 
 if settings.IAM_TYPE == 'BASIC':
     urlpatterns += [
+        # Comment this line to block account creation on sign in page
         path('register', RegisterViewEx.as_view(), name='rest_register'),
         # password
         path('password/reset', PasswordResetView.as_view(),

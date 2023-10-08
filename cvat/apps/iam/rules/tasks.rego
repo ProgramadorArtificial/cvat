@@ -44,37 +44,39 @@ is_task_owner {
     input.resource.owner.id == input.auth.user.id
 }
 
-is_task_assignee {
-    input.resource.assignee.id == input.auth.user.id
-}
+#is_task_assignee {
+#    input.resource.assignee.id == input.auth.user.id
+#}
 
 is_project_owner {
     input.resource.project.owner.id == input.auth.user.id
 }
 
-is_project_assignee {
-    input.resource.project.assignee.id == input.auth.user.id
-}
+#is_project_assignee {
+#    input.resource.project.assignee.id == input.auth.user.id
+#}
 
 is_project_staff {
     is_project_owner
 }
 
-is_project_staff {
-    is_project_assignee
-}
+# Assigned to the project does not mean the account is the owner/admin of the project
+#is_project_staff {
+#    is_project_assignee
+#}
 
-is_task_staff {
-    is_project_staff
-}
+#is_task_staff {
+#    is_project_staff
+#}
 
 is_task_staff {
     is_task_owner
 }
 
-is_task_staff {
-    is_task_assignee
-}
+# Assigned to the task does not mean the account is the owner/admin of the task
+#is_task_staff {
+#    is_task_assignee
+#}
 
 default allow = false
 
@@ -154,6 +156,7 @@ allow {
     organizations.is_member
 }
 
+# Allow all organization members to list all tasks
 filter = [] { # Django Q object to filter list of entries
     utils.is_admin
     utils.is_sandbox
@@ -170,7 +173,7 @@ filter = [] { # Django Q object to filter list of entries
 } else = qobject {
     utils.is_organization
     utils.has_perm(utils.USER)
-    organizations.has_perm(organizations.MAINTAINER)
+    organizations.has_perm(organizations.WORKER)
     qobject := [ {"organization": input.auth.organization.id},
         {"project__organization": input.auth.organization.id}, "|"]
 } else = qobject {
@@ -180,6 +183,14 @@ filter = [] { # Django Q object to filter list of entries
         {"project__owner_id": user.id}, "|", {"project__assignee_id": user.id}, "|",
         {"organization": input.auth.organization.id},
         {"project__organization": input.auth.organization.id}, "|", "&"]
+}
+
+# Allow all organization members to access all tasks
+allow {
+    { utils.VIEW }[input.scope]
+    input.auth.organization.id == input.resource.organization.id
+    utils.has_perm(utils.USER)
+    organizations.has_perm(organizations.WORKER)
 }
 
 allow {
