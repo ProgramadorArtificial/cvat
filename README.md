@@ -3,7 +3,7 @@
 # ##### Editado por Programador Artificial - Começo \#####
 Este fork foi criado para registrar as alterações realizadas no vídeo abaixo. Elas consistiram em adicionar um modelo customizado para realizar pré-anotação e de alterações na segurança, não permitindo que WORKERs dentro da organização tenham acesso a funções sensíveis, como exportação das imagens e anotações, assim como deletar os dados.
 
-[Vídeo com todas as explicações (em breve)]()
+[Vídeo com todas as explicações](https://youtu.be/MY83UvxUH80)
 
 ## Autor
 * **Programador Artificial** - [GitHub](https://github.com/ProgramadorArtificial) - [YouTube](https://www.youtube.com/@ProgramadorArtificial)
